@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
+from os import listdir
+from os.path import isfile, join
 from re import compile
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 
 # Library functions
-def find_new_targets(url, target_regex, targets_downloaded=None):
+def find_targets_new(url, target_regex, targets_downloaded=None):
     # Initialize a new targets downloaded if none is provided
     if targets_downloaded is None:
         targets_downloaded = {}
@@ -21,10 +23,20 @@ def find_new_targets(url, target_regex, targets_downloaded=None):
 
     for target in targets:
         if not target.string in targets_downloaded:
-            print target.string
+            print(target.string)
             new_targets[target.string] = url + "/" + target.string
 
     return new_targets
+
+
+def find_targets_downloaded(directory, target_regex):
+    targets_downloaded = {}
+    for target in listdir(directory):
+        target_path = join(directory, target)
+        if isfile(join(directory, target)):
+            print("Found target " + target + " with path " + target_path)
+            targets_downloaded[target] = target_path
+    return targets_downloaded
 
 
 def download_targets(new_targets, destination):
@@ -74,9 +86,11 @@ def main():
                 print("Setting destination directory to " + d)
                 destination = d
             print("Parse content in directory " + d)
+            # and join all found in different directories; avoiding duplicates
+            targets_downloaded = {**targets_downloaded, **find_targets_downloaded(d, target_regex)}
 
     # Get all new target urls
-    new_targets = find_new_targets(url, target_regex, targets_downloaded)
+    new_targets = find_targets_new(url, target_regex, targets_downloaded)
 
     # Download the targets
     download_targets(new_targets, destination)
