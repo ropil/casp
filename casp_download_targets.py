@@ -5,6 +5,34 @@ from re import compile
 from urllib.request import urlopen, urlretrieve
 from bs4 import BeautifulSoup
 
+'''
+ {casp_download_targets is a shell utility to download CASP targets from the online download area.}
+ Copyright (C) 2017  Robert Pilstål
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+'''
+
+
+# Version and license information
+def get_version_str():
+    return "\n".join([
+        "casp_download_targets  Copyright (C) 2017  Robert Pilstål;",
+        "This program comes with ABSOLUTELY NO WARRANTY.",
+        "This is free software, and you are welcome to redistribute it",
+        "under certain conditions; see supplied General Public License."
+        ])
+
 
 # Library functions
 def find_targets_new(url, target_regex, targets_downloaded=None, verbose=False):
@@ -32,12 +60,15 @@ def find_targets_new(url, target_regex, targets_downloaded=None, verbose=False):
 
 def find_targets_downloaded(directory, target_regex, verbose=False):
     targets_downloaded = {}
+    # Check all files in directory
     for target in listdir(directory):
-        target_path = join(directory, target)
-        if isfile(join(directory, target)):
-            if verbose:
-                print("Found target " + target + " with path " + target_path)
-            targets_downloaded[target] = target_path
+        # Only consider files matching target regex
+        if target_regex.match(target):
+            target_path = join(directory, target)
+            if isfile(join(directory, target)):
+                if verbose:
+                    print("Found target " + target + " with path " + target_path)
+                targets_downloaded[target] = target_path
     return targets_downloaded
 
 
@@ -55,7 +86,7 @@ def main():
     from argparse import ArgumentParser
     from sys import argv, stdin
     parser = ArgumentParser(
-        description="Download CASP12 targets.")
+        description="Utility to download CASP targets from the online download area.")
     parser.add_argument(
         "-verbose", action="store_true", default=False, help="Be verbose, default=silent")
     parser.add_argument(
@@ -68,6 +99,7 @@ def main():
     parser.add_argument(
         "-dest", nargs=1, default=[None],
         metavar="DIR", help="Target download destination directory, default=first in list")
+    parser.add_argument('-v', '--version', action='version', version=get_version_str())
     parser.add_argument(
         "directories", nargs="*", metavar="DIR", help="Directories where to download targets")
     arguments = parser.parse_args(argv[1:])
